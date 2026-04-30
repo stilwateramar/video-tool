@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import threading
 import uuid
 from pathlib import Path
@@ -24,7 +26,8 @@ def new_job(kind: str, payload: dict | None = None) -> str:
         "error": None,
         "payload": payload or {},
     }
-    _write(job_id, data)
+    with _lock:
+        _write(job_id, data)
     return job_id
 
 
@@ -58,7 +61,8 @@ def get(job_id: str) -> dict | None:
     p = JOBS / f"{job_id}.json"
     if not p.exists():
         return None
-    return _read(job_id)
+    with _lock:
+        return _read(job_id)
 
 
 def _read(job_id: str) -> dict:
@@ -66,4 +70,21 @@ def _read(job_id: str) -> dict:
 
 
 def _write(job_id: str, data: dict) -> None:
-    (JOBS / f"{job_id}.json").write_text(json.dumps(data, indent=2))
+    """Atomically write the job file so concurrent readers never see a
+    truncated/empty file.
+    """
+    target = JOBS / f"{job_id}.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(
+        prefix=f".{job_id}.", suffix=".tmp", dir=str(target.parent)
+    )
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp_path, target)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
