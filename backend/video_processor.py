@@ -18,12 +18,10 @@ from pathlib import Path
 from typing import Iterable
 
 import cv2
-import mediapipe as mp
 import numpy as np
 
 from .config import AESTHETIC_PRESETS
-
-mp_pose = mp.solutions.pose
+from .pose_backend import PoseDetector
 
 
 @dataclass
@@ -75,7 +73,7 @@ def _track_subject_x(
     duration = max(0.01, end - start)
     times = np.linspace(0.0, duration, samples)
     points: list[tuple[float, float]] = []
-    with mp_pose.Pose(model_complexity=0, min_detection_confidence=0.4) as pose:
+    with PoseDetector(model_complexity=0, min_detection_confidence=0.4) as pose:
         for t in times:
             cap.set(cv2.CAP_PROP_POS_MSEC, (start + t) * 1000.0)
             ok, frame = cap.read()
@@ -84,9 +82,13 @@ def _track_subject_x(
                 continue
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             res = pose.process(rgb)
-            if res.pose_landmarks:
-                xs = [lm.x for lm in res.pose_landmarks.landmark if lm.visibility > 0.3]
-                points.append((float(t), float(np.mean(xs)) if xs else 0.5))
+            if res.landmarks is not None:
+                vis_mask = res.visibility > 0.3
+                if vis_mask.any():
+                    xs = res.landmarks[vis_mask, 0]
+                    points.append((float(t), float(np.mean(xs))))
+                else:
+                    points.append((float(t), 0.5))
             else:
                 points.append((float(t), 0.5))
     cap.release()

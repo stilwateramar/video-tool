@@ -12,10 +12,9 @@ from dataclasses import dataclass, asdict
 from typing import Iterable
 
 import cv2
-import mediapipe as mp
 import numpy as np
 
-mp_pose = mp.solutions.pose
+from .pose_backend import PoseDetector
 
 # MediaPipe Pose landmark indices (subset used).
 NOSE = 0
@@ -228,11 +227,7 @@ def detect_poses(
 
     raw: list[tuple[float, str, float]] = []  # (t, pose_key, confidence)
 
-    with mp_pose.Pose(
-        model_complexity=1,
-        enable_segmentation=False,
-        min_detection_confidence=0.5,
-    ) as pose:
+    with PoseDetector(model_complexity=1, min_detection_confidence=0.5) as pose:
         idx = 0
         while True:
             ok = cap.grab()
@@ -245,16 +240,8 @@ def detect_poses(
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 res = pose.process(rgb)
                 t = idx / fps
-                if res.pose_landmarks:
-                    lm = np.array(
-                        [[p.x, p.y, p.z] for p in res.pose_landmarks.landmark],
-                        dtype=np.float32,
-                    )
-                    vis = np.array(
-                        [p.visibility for p in res.pose_landmarks.landmark],
-                        dtype=np.float32,
-                    )
-                    key, conf = _classify(lm, vis)
+                if res.landmarks is not None:
+                    key, conf = _classify(res.landmarks, res.visibility)
                 else:
                     key, conf = "transition", 0.0
                 raw.append((t, key, conf))
