@@ -182,9 +182,9 @@ def _drawtext_pose_overlay(
     cum = 0.0
     for c in clips:
         dur = c.duration
-        if c.english:
+        if c.label:
             label = (
-                f"{c.sanskrit} - {c.english}" if c.sanskrit else c.english
+                f"{c.sanskrit} - {c.label}" if c.sanskrit else c.label
             )
             # drawtext needs colons, single quotes, percents, and backslashes escaped.
             label = (
