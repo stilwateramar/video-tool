@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Yoga Reel Studio</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Yoga Reel Studio</h1>
+      <p class="tagline">
+        Upload a class, optionally drop in a reel you love, and we'll generate
+        social-ready clips that match the vibe.
+      </p>
+    </header>
+
+    <main>
+      <section class="card" id="step-class">
+        <h2>1. Upload your class video</h2>
+        <input type="file" id="class-file" accept="video/*" />
+        <button id="class-upload-btn" disabled>Upload &amp; analyze</button>
+        <div class="progress" id="class-progress" hidden>
+          <div class="bar"></div>
+          <div class="msg"></div>
+        </div>
+        <div id="class-summary" class="summary" hidden></div>
+        <div id="pose-list" class="pose-list" hidden></div>
+      </section>
+
+      <section class="card" id="step-sample">
+        <h2>2. (Optional) Inspiration reel</h2>
+        <p class="hint">
+          Upload a short reel you'd like yours to look like &mdash; we extract
+          its color, pacing, and aspect ratio.
+        </p>
+        <input type="file" id="sample-file" accept="video/*" />
+        <button id="sample-upload-btn" disabled>Analyze sample</button>
+        <div id="sample-summary" class="summary" hidden></div>
+      </section>
+
+      <section class="card" id="step-config">
+        <h2>3. Configure reels</h2>
+        <p class="hint">Add one or more reels to render. Defaults are sane.</p>
+        <div id="reel-list"></div>
+        <button id="add-reel-btn" type="button">+ Add reel</button>
+        <div class="actions">
+          <button id="generate-btn" disabled>Generate</button>
+          <label class="toggle">
+            <input type="checkbox" id="apply-style-toggle" checked />
+            Match inspiration sample
+          </label>
+        </div>
+        <div class="progress" id="gen-progress" hidden>
+          <div class="bar"></div>
+          <div class="msg"></div>
+        </div>
+      </section>
+
+      <section class="card" id="step-results">
+        <h2>4. Your reels</h2>
+        <div id="results"></div>
+      </section>
+    </main>
+
+    <template id="reel-template">
+      <div class="reel-cfg">
+        <div class="row">
+          <label>Name <input class="r-name" placeholder="reel_1" /></label>
+          <label>Kind
+            <select class="r-kind"></select>
+          </label>
+          <label>Format
+            <select class="r-format"></select>
+          </label>
+          <label>Length (s) <input type="number" class="r-secs" value="30" min="6" max="120" /></label>
+        </div>
+        <div class="row">
+          <label>Color preset
+            <select class="r-preset"></select>
+          </label>
+          <label>Audio cleanup
+            <select class="r-audio"></select>
+          </label>
+          <label>Music
+            <select class="r-music"></select>
+          </label>
+          <label>Speed <input type="number" step="0.1" class="r-speed" value="1.0" min="0.5" max="2.0" /></label>
+        </div>
+        <div class="row checks">
+          <label><input type="checkbox" class="r-overlay" checked /> Pose-name overlay</label>
+          <label><input type="checkbox" class="r-breath" /> Breath cue</label>
+          <label><input type="checkbox" class="r-progress" /> Progress bar</label>
+          <label class="pose-focus" hidden>Poses
+            <input type="text" class="r-poses" placeholder="downward_dog,warrior_ii" />
+          </label>
+          <button type="button" class="r-remove">remove</button>
+        </div>
+      </div>
+    </template>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

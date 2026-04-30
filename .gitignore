@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+storage/
+assets/music/*.mp3
+.DS_Store
+.idea/
+.vscode/
